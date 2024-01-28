@@ -8,10 +8,12 @@ using UnityEngine.Tilemaps;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] float       runSpeed  = 6f;
-    [SerializeField] float       jumpSpeed = 11f;
-    [SerializeField] GameObject  bullet;
-    [SerializeField] GameObject  gun;
+    [SerializeField] float          runSpeed  = 6f;
+    [SerializeField] float          jumpSpeed = 11f;
+    [SerializeField] GameObject     gun;
+    [SerializeField] GameObject     bullet;
+    [SerializeField] ParticleSystem gunSmoke;
+
 
     [SerializeField] TilemapCollider2D climbingTops;
 
@@ -138,6 +140,10 @@ public class Player : MonoBehaviour
         AudioSource.PlayClipAtPoint(shootSound, transform.position);
         bulletInstance = Instantiate(bullet, gun.transform.position, transform.rotation);
         bulletInstance.transform.localScale = transform.localScale;
+
+        var gunPos = GameObject.Find("Gun").GetComponent<Transform>().position;
+        if (transform.localScale.x < 0) gunSmoke.transform.position = new Vector3 (gunPos.x - 0.65f, gunPos.y, gunPos.z);
+        else if (transform.localScale.x > 0) gunSmoke.transform.position = gunPos;
         Invoke("HideTheGun", 0.2f);
     }
 
