@@ -6,15 +6,20 @@ public class Bullet : MonoBehaviour
 {
     [SerializeField] float bulletSpeed = 12f;
 
+    [SerializeField] ParticleSystem bulletSmoke;
+
     Rigidbody2D myRigidbody;
     Player      player;
     float       xSpeed;
-    
-    void Start()
+
+    void Awake()
     {
         myRigidbody = GetComponent<Rigidbody2D>();
         player = FindObjectOfType<Player>();
         xSpeed = player.transform.localScale.x * bulletSpeed;
+
+        var bulletRot = bulletSmoke.transform.rotation;
+        if (xSpeed < 0) bulletSmoke.transform.rotation = new Quaternion(bulletRot.x, bulletRot.y + 180, bulletRot.z, bulletRot.w);
     }
 
     void Update()
