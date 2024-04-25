@@ -23,12 +23,7 @@ public class Player : MonoBehaviour
     [SerializeField] AudioClip   bounceSound;
     [SerializeField] AudioSource audioSource;
 
-   // [Header("MOBILE only")]
-   // [SerializeField] Canvas canvasMobile;
-
-
     float onJumpUIisPressed = -1;
-
 
     GameObject        bulletInstance;
     Vector2           moveInput;
@@ -43,17 +38,6 @@ public class Player : MonoBehaviour
     bool  isJumping = false;
 
     Exit exitLevelScript;
-
-
-  //  void Awake()
-  //  {
-  //      if (Application.isMobilePlatform)
-  //      {
-  //          canvasMobile.gameObject.SetActive(true);
-  //          // Application.Quit();
-  //      }
-  //  }
-
 
     void Start()
     {
@@ -75,8 +59,6 @@ public class Player : MonoBehaviour
         ClimbLadder();
         Die();
     }
-
-
 
     void OnMove(InputValue value)
     {
@@ -104,7 +86,6 @@ public class Player : MonoBehaviour
             myAnimator.SetBool("isRunning", false);
             if (audioSource.time == Mathf.Epsilon) audioSource.Stop(); //wait till the end of the sound
         }
-
     }
     
     void FlipSprite()
@@ -116,7 +97,6 @@ public class Player : MonoBehaviour
             transform.localScale = new Vector2(Mathf.Sign(myRigidbody.velocity.x), 1f);
         }
     }
-
 
     void OnJump(InputValue value)
     {
@@ -217,9 +197,7 @@ public class Player : MonoBehaviour
                 color.a = mySpriteRenderer.color.a / 2;
                 mySpriteRenderer.color = color;
                 myBodyCollider.enabled = false; //if not, my color.a goes to 0 and better not
-
             }
-
             FindObjectOfType<GameSession>().ProcessPlayerDeath();
         }
     }
@@ -241,12 +219,10 @@ public class Player : MonoBehaviour
     public void OnPointerX(int inputValue)
     {
         moveInput.x = inputValue;
-       
     }
     public void OnPointerY(int inputValue)
     {
         moveInput.y = inputValue;
-
     }
     public void OnJumpUI()
     {
