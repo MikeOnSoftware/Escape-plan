@@ -62,7 +62,6 @@ public class Player : MonoBehaviour
 
     void OnMove(InputValue value)
     {
-        Debug.Log(value.Get<Vector2>());
         if (!isAlive || exitLevelScript.IsLevelCompleted) { return; }
         moveInput = value.Get<Vector2>();
     }
@@ -160,10 +159,8 @@ public class Player : MonoBehaviour
         myAnimator.SetBool("isRunning", false);
         myAnimator.SetBool("isClimbing", true);
 
-        if (moveInput.y != 0)
-        {
-            myAnimator.speed = 0.7f;
-        }
+        if (moveInput.y != 0) 
+             myAnimator.speed = 0.7f;
         else myAnimator.speed = 0;
 
         if (moveInput.x != 0 && isJumping && moveInput.y == 0) //for jumping from the ladder, and also when passing through
@@ -202,28 +199,17 @@ public class Player : MonoBehaviour
         }
     }
 
-    void ResetJumpState()
-    {
-        isJumping = false;
-    }
-    void ShowTheGun()
-    {
-        gun.SetActive(true);
-    }
-    void HideTheGun()
-    {
-        gun.SetActive(false);
-    }
+    void ResetJumpState() => isJumping = false;
+    
+    void ShowTheGun() => gun.SetActive(true);
+    
+    void HideTheGun() => gun.SetActive(false);
 
     //INPUT MOBILE
-    public void OnPointerX(int inputValue)
-    {
-        moveInput.x = inputValue;
-    }
-    public void OnPointerY(int inputValue)
-    {
-        moveInput.y = inputValue;
-    }
+    public void OnPointerX(int inputValue) => moveInput.x = inputValue;
+    
+    public void OnPointerY(int inputValue) => moveInput.y = inputValue;
+    
     public void OnJumpUI()
     {
         if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground", "Climbing", "ClimbingTops")))
@@ -231,9 +217,6 @@ public class Player : MonoBehaviour
             myRigidbody.velocity = new Vector2(0, jumpSpeed);
         }
     }
-    public void OnFireUI()
-    {
-        OnFire();
-    }
+    public void OnFireUI() =>  OnFire();
 }
 
