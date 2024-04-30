@@ -31,7 +31,7 @@ public class EnemiesMovement : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             myAnimator.speed = animDelay;
-            Invoke(nameof("ResetMovement"), 2f);
+            Invoke(nameof(ResetMovement), 2f);
         }
     }
     void FlipFace()
