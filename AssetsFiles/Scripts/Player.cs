@@ -22,9 +22,8 @@ public class Player : MonoBehaviour
     [SerializeField] AudioClip bounceSound;
     [SerializeField] AudioSource audioSource;
 
-    private const float HideTheGunDelay = 0.2f;
-
-    readonly float onJumpUIisPressed = -1;
+    const float HideTheGunDelay = 0.2f;
+    float onJumpUIisPressed = -1;
 
     GameObject      bulletInstance;
     Vector2         moveInput;
