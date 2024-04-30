@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -9,14 +8,7 @@ public class Exit : MonoBehaviour
     [SerializeField] float     loadNextLevelDelay = 1f;
     [SerializeField] AudioClip exitSound;
 
-    bool isLevelCompleted = false;
-
-    public bool IsLevelCompleted
-    {
-        get { return isLevelCompleted; }
-        private set { isLevelCompleted = value; }
-    }
-
+    public bool IsLevelCompleted { get; private set; } = false;
 
     void OnTriggerEnter2D(Collider2D collider)
     {
@@ -27,13 +19,9 @@ public class Exit : MonoBehaviour
 
             var nextLevelIndex = SceneManager.GetActiveScene().buildIndex + 1;
             if (nextLevelIndex < SceneManager.sceneCountInBuildSettings)
-            {
                 StartCoroutine(LoadNextLevel());
-            }
             else //if no other scenes in build settings
-            {
                 StartCoroutine(BackToFirstLevel());
-            }
         }
     }
 
