@@ -1,6 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
@@ -19,26 +16,14 @@ public class GameSession : MonoBehaviour
     {
         int numGameSessions = FindObjectsOfType<GameSession>().Length;
 
-        if (numGameSessions > 1)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            DontDestroyOnLoad(gameObject);
-        }
+        if (numGameSessions > 1) Destroy(gameObject);
+        else DontDestroyOnLoad(gameObject);
     }
 
     public void ProcessPlayerDeath()
     {
-        if (playerLives > 1)
-        {
-            Invoke("TakeLife", 1);
-        }
-        else
-        {
-            ResetGameSession();
-        }
+        if (playerLives > 1) Invoke(nameof(TakeLife), 1);
+        else ResetGameSession();
     }
 
     public void AddToScore(int pointsToAdd)
@@ -61,6 +46,4 @@ public class GameSession : MonoBehaviour
         SceneManager.LoadScene(0);
         Destroy(gameObject);
     }
-
-
 }
