@@ -69,6 +69,7 @@ public class Player : MonoBehaviour
         moveInput = value.Get<Vector2>();
     }
 
+    #region Running
     void Run()
     {
         if (!isAlive || exitLevelScript.IsLevelCompleted) { return; }
@@ -90,7 +91,6 @@ public class Player : MonoBehaviour
             if (audioSource.time == Mathf.Epsilon)
                 audioSource.Stop(); //wait till the end of the sound
         }
-
     }
     void FlipSprite()
     {
@@ -98,7 +98,9 @@ public class Player : MonoBehaviour
             transform.localScale = new Vector2(Mathf.Sign(myRigidbody.velocity.x), 1f);
     }
     bool PlayerHasHorizontalSpeed => Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon;
+    #endregion
 
+    #region Jumping
     void OnJump(InputValue value)
     {
         if (!isAlive || exitLevelScript.IsLevelCompleted) { return; }
@@ -114,7 +116,9 @@ public class Player : MonoBehaviour
     bool IsJumpButtonPressed(InputValue value) => value.isPressed || onJumpUIisPressed > 0;
     bool IsAllowedToJump => myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground", "Climbing", "ClimbingTops"));
     void ResetJumpState() => isJumping = false;
+    #endregion
 
+    #region Shooting
     void OnFire()
     {
         if (!isAlive || exitLevelScript.IsLevelCompleted) { return; }
@@ -137,7 +141,9 @@ public class Player : MonoBehaviour
         else if (transform.localScale.x > 0) gunSmoke.transform.position = gunPos;
     }
     void HideTheGun() => gun.SetActive(false);
+    #endregion
 
+    #region Clinming
     void ClimbLadder()
     {
         SetClimbingTopsState();
@@ -193,6 +199,7 @@ public class Player : MonoBehaviour
         Vector2 playerClimbingVelocity = new Vector2(myRigidbody.velocity.x, moveInput.y * runSpeed / 2);
         myRigidbody.velocity = playerClimbingVelocity;
     }
+    #endregion
 
     void OnCollisionEnter2D(Collision2D other)
     {
@@ -223,7 +230,7 @@ public class Player : MonoBehaviour
     }
 
 
-    //INPUT MOBILE
+    #region Mobile
     void OnPointerX(int inputValue) => moveInput.x = inputValue;
     void OnPointerY(int inputValue) => moveInput.y = inputValue;
     void OnJumpUI()
@@ -234,4 +241,5 @@ public class Player : MonoBehaviour
         }
     }
     void OnFireUI() => OnFire();
+    #endregion
 }
