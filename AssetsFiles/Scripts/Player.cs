@@ -75,10 +75,11 @@ public class Player : MonoBehaviour
         Vector2 playerVelocity = new Vector2(moveInput.x * runSpeed, myRigidbody.velocity.y);
         myRigidbody.velocity = playerVelocity;
 
-        if (moveInput.x != 0 && !isJumping)
+        if (PlayerHasHorizontalSpeed && !isJumping)
         {
             myAnimator.SetBool("isRunning", true);
-            if (!audioSource.isPlaying && myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground", "ClimbingTops")))
+            if (!audioSource.isPlaying
+                && myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground", "ClimbingTops")))
             {
                 audioSource.PlayOneShot(runSound);
             }
@@ -86,17 +87,17 @@ public class Player : MonoBehaviour
         else
         {
             myAnimator.SetBool("isRunning", false);
-            if (audioSource.time == Mathf.Epsilon) audioSource.Stop(); //wait till the end of the sound
+            if (audioSource.time == Mathf.Epsilon)
+                audioSource.Stop(); //wait till the end of the sound
         }
 
     }
-
     void FlipSprite()
     {
-        bool playerHasHorizontalSpeed = Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon;
-
-        if (playerHasHorizontalSpeed) transform.localScale = new Vector2(Mathf.Sign(myRigidbody.velocity.x), 1f);
+        if (PlayerHasHorizontalSpeed)
+            transform.localScale = new Vector2(Mathf.Sign(myRigidbody.velocity.x), 1f);
     }
+    bool PlayerHasHorizontalSpeed => Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon;
 
     void OnJump(InputValue value)
     {
@@ -105,16 +106,13 @@ public class Player : MonoBehaviour
         if (IsAllowedToJump)
         {
             isJumping = true;
-
-            if (value.isPressed || onJumpUIisPressed > 0)
+            if (IsJumpButtonPressed(value))
                 myRigidbody.velocity += new Vector2(0, jumpSpeed);
-
             Invoke(nameof(ResetJumpState), .2f);
         }
     }
-
+    bool IsJumpButtonPressed(InputValue value) => value.isPressed || onJumpUIisPressed > 0;
     bool IsAllowedToJump => myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground", "Climbing", "ClimbingTops"));
-
     void ResetJumpState() => isJumping = false;
 
     void OnFire()
@@ -126,21 +124,18 @@ public class Player : MonoBehaviour
         Invoke(nameof(HideTheGun), HideTheGunDelay);
     }
     void ShowTheGun() => gun.SetActive(true);
-
     void InstantiateBullet()
     {
         AudioSource.PlayClipAtPoint(shootSound, transform.position);
         bulletInstance = Instantiate(bullet, gun.transform.position, transform.rotation);
         bulletInstance.transform.localScale = transform.localScale;
     }
-
-    private void FixGunSmokePosition()
+    void FixGunSmokePosition()
     {
         var gunPos = GameObject.Find("Gun").GetComponent<Transform>().position;
         if (transform.localScale.x < 0) gunSmoke.transform.position = new Vector3(gunPos.x - 0.6f, gunPos.y, gunPos.z);
         else if (transform.localScale.x > 0) gunSmoke.transform.position = gunPos;
     }
-
     void HideTheGun() => gun.SetActive(false);
 
     void ClimbLadder()
@@ -167,10 +162,8 @@ public class Player : MonoBehaviour
 
         SlowDownIfClimbing();
     }
-
     bool IsClimbilg => myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Climbing", "ClimbingTops"))
                             && myBodyCollider.IsTouchingLayers(LayerMask.GetMask("Climbing", "ClimbingTops"));
-
     void SetClimbingTopsState()
     {
         //set the climbing top to act as ground or ladder/rope
@@ -188,11 +181,8 @@ public class Player : MonoBehaviour
             climbingTops.isTrigger = false; // move through it
         }
     }
-
-    bool IsPassingOrJumpingFromLadder => moveInput.x != 0 && isJumping && moveInput.y == 0;
-
+    bool IsPassingOrJumpingFromLadder => PlayerHasHorizontalSpeed && isJumping && moveInput.y == 0;
     void SetGravityScale(Rigidbody2D rBody, float value) => rBody.gravityScale = value;
-
     void SlowDownIfClimbing()
     {
         if (moveInput.y != 0)
@@ -245,4 +235,3 @@ public class Player : MonoBehaviour
     }
     void OnFireUI() => OnFire();
 }
-
