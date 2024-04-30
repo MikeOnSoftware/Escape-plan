@@ -19,12 +19,9 @@ public class EnemiesMovement : MonoBehaviour
         myAnimator = GetComponent<Animator>();
     }
 
-    void Update()
-    {
-        myRigidbody.velocity = new Vector2(moveSpeed, 0);
-    }
+    void Update() => myRigidbody.velocity = new Vector2(moveSpeed, 0);
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Ground"))
         {
@@ -34,18 +31,14 @@ public class EnemiesMovement : MonoBehaviour
         if (collision.CompareTag("Player"))
         {
             myAnimator.speed = animDelay;
-            Invoke("ResetMovement", 2f);
+            Invoke(nameof("ResetMovement"), 2f);
         }
     }
-
     void FlipFace()
     {
         if (mySpriteRenderer.flipX == false) mySpriteRenderer.flipX = true;
         else mySpriteRenderer.flipX = false;
     }
 
-    void ResetMovement()
-    {
-        myAnimator.speed = 1.15f;
-    }
+    void ResetMovement() => myAnimator.speed = 1.15f;
 }
