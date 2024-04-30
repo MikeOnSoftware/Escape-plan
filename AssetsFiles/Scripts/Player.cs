@@ -8,46 +8,47 @@ using UnityEngine.Tilemaps;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] float          runSpeed  = 6f;
-    [SerializeField] float          jumpSpeed = 11f;
-    [SerializeField] GameObject     gun;
-    [SerializeField] GameObject     bullet;
+    [SerializeField] float runSpeed = 6f;
+    [SerializeField] float jumpSpeed = 11f;
+    [SerializeField] GameObject gun;
+    [SerializeField] GameObject bullet;
     [SerializeField] ParticleSystem gunSmoke;
-
 
     [SerializeField] TilemapCollider2D climbingTops;
 
     [Header("AUDIO")]
-    [SerializeField] AudioClip   shootSound;
-    [SerializeField] AudioClip   runSound;
-    [SerializeField] AudioClip   bounceSound;
+    [SerializeField] AudioClip shootSound;
+    [SerializeField] AudioClip runSound;
+    [SerializeField] AudioClip bounceSound;
     [SerializeField] AudioSource audioSource;
 
-    float onJumpUIisPressed = -1;
+    private const float HideTheGunDelay = 0.2f;
 
-    GameObject        bulletInstance;
-    Vector2           moveInput;
-    SpriteRenderer    mySpriteRenderer;
-    Rigidbody2D       myRigidbody;
+    readonly float onJumpUIisPressed = -1;
+
+    GameObject      bulletInstance;
+    Vector2         moveInput;
+    SpriteRenderer  mySpriteRenderer;
+    Rigidbody2D     myRigidbody;
     CapsuleCollider2D myBodyCollider;
     CapsuleCollider2D myFeetCollider;
-    Animator          myAnimator;
+    Animator        myAnimator;
 
     float startingGravity;
-    bool  isAlive   = true;
-    bool  isJumping = false;
+    bool isAlive = true;
+    bool isJumping = false;
 
     Exit exitLevelScript;
 
     void Start()
     {
         mySpriteRenderer = GetComponent<SpriteRenderer>();
-        myRigidbody      = GetComponent<Rigidbody2D>();
-        myBodyCollider   = GetComponent<CapsuleCollider2D>();
-        myFeetCollider   = GameObject.Find("Feet").GetComponent<CapsuleCollider2D>();
-        myAnimator       = GetComponent<Animator>();
-        exitLevelScript  = FindObjectOfType<Exit>();
-        startingGravity  = myRigidbody.gravityScale;
+        myRigidbody = GetComponent<Rigidbody2D>();
+        myBodyCollider = GetComponent<CapsuleCollider2D>();
+        myFeetCollider = GameObject.Find("Feet").GetComponent<CapsuleCollider2D>();
+        myAnimator = GetComponent<Animator>();
+        exitLevelScript = FindObjectOfType<Exit>();
+        startingGravity = myRigidbody.gravityScale;
     }
 
     void Update()
@@ -59,6 +60,8 @@ public class Player : MonoBehaviour
         ClimbLadder();
         Die();
     }
+
+
 
     void OnMove(InputValue value)
     {
@@ -85,50 +88,92 @@ public class Player : MonoBehaviour
             myAnimator.SetBool("isRunning", false);
             if (audioSource.time == Mathf.Epsilon) audioSource.Stop(); //wait till the end of the sound
         }
+
     }
-    
+
     void FlipSprite()
     {
         bool playerHasHorizontalSpeed = Mathf.Abs(myRigidbody.velocity.x) > Mathf.Epsilon;
 
-        if (playerHasHorizontalSpeed)
-        {
-            transform.localScale = new Vector2(Mathf.Sign(myRigidbody.velocity.x), 1f);
-        }
+        if (playerHasHorizontalSpeed) transform.localScale = new Vector2(Mathf.Sign(myRigidbody.velocity.x), 1f);
     }
 
     void OnJump(InputValue value)
     {
         if (!isAlive || exitLevelScript.IsLevelCompleted) { return; }
 
-        if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground", "Climbing", "ClimbingTops")))
+        if (IsAllowedToJump)
         {
             isJumping = true;
 
             if (value.isPressed || onJumpUIisPressed > 0)
                 myRigidbody.velocity += new Vector2(0, jumpSpeed);
 
-            Invoke("ResetJumpState", .2f);
+            Invoke(nameof(ResetJumpState), .2f);
         }
     }
+
+    bool IsAllowedToJump => myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground", "Climbing", "ClimbingTops"));
+
+    void ResetJumpState() => isJumping = false;
 
     void OnFire()
     {
         if (!isAlive || exitLevelScript.IsLevelCompleted) { return; }
         ShowTheGun();
+        InstantiateBullet();
+        FixGunSmokePosition();
+        Invoke(nameof(HideTheGun), HideTheGunDelay);
+    }
+    void ShowTheGun() => gun.SetActive(true);
+
+    void InstantiateBullet()
+    {
         AudioSource.PlayClipAtPoint(shootSound, transform.position);
         bulletInstance = Instantiate(bullet, gun.transform.position, transform.rotation);
         bulletInstance.transform.localScale = transform.localScale;
-
-        var gunPos = GameObject.Find("Gun").GetComponent<Transform>().position;
-        if (transform.localScale.x < 0) gunSmoke.transform.position = new Vector3 (gunPos.x - 0.65f, gunPos.y, gunPos.z);
-        else if (transform.localScale.x > 0) gunSmoke.transform.position = gunPos;
-        Invoke("HideTheGun", 0.2f);
     }
+
+    private void FixGunSmokePosition()
+    {
+        var gunPos = GameObject.Find("Gun").GetComponent<Transform>().position;
+        if (transform.localScale.x < 0) gunSmoke.transform.position = new Vector3(gunPos.x - 0.6f, gunPos.y, gunPos.z);
+        else if (transform.localScale.x > 0) gunSmoke.transform.position = gunPos;
+    }
+
+    void HideTheGun() => gun.SetActive(false);
 
     void ClimbLadder()
     {
-        //set the climbing top to act as ground or climbing object
+        SetClimbingTopsState();
+
+        if (!IsClimbilg)
+        {
+            SetGravityScale(myRigidbody, startingGravity);
+            myAnimator.speed = 1;
+            myAnimator.SetBool("isClimbing", false);
+            return;
+        }
+
+        SetGravityScale(myRigidbody, 0);
+        myAnimator.SetBool("isRunning", false);
+        myAnimator.SetBool("isClimbing", true);
+
+        if (IsPassingOrJumpingFromLadder)
+        {
+            SetGravityScale(myRigidbody, startingGravity);
+            return;
+        }
+
+        SlowDownIfClimbing();
+    }
+
+    bool IsClimbilg => myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Climbing", "ClimbingTops"))
+                            && myBodyCollider.IsTouchingLayers(LayerMask.GetMask("Climbing", "ClimbingTops"));
+
+    void SetClimbingTopsState()
+    {
+        //set the climbing top to act as ground or ladder/rope
         if (moveInput.y != 0)
         {
             if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("ClimbingTops")) ||
@@ -142,35 +187,21 @@ public class Player : MonoBehaviour
         {
             climbingTops.isTrigger = false; // move through it
         }
-        //--------------
+    }
 
-        bool noContactFeetClimbing = !myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Climbing", "ClimbingTops"));
-        bool noContactBodyClimbing = !myBodyCollider.IsTouchingLayers(LayerMask.GetMask("Climbing", "ClimbingTops"));
+    bool IsPassingOrJumpingFromLadder => moveInput.x != 0 && isJumping && moveInput.y == 0;
 
-        if (noContactFeetClimbing || noContactBodyClimbing)
+    void SetGravityScale(Rigidbody2D rBody, float value) => rBody.gravityScale = value;
+
+    void SlowDownIfClimbing()
+    {
+        if (moveInput.y != 0)
         {
-            myRigidbody.gravityScale = startingGravity;
-            myAnimator.speed = 1;
-            myAnimator.SetBool("isClimbing", false);
-            return;
+            myAnimator.speed = 0.7f;
         }
-
-        myRigidbody.gravityScale = 0;
-        myAnimator.SetBool("isRunning", false);
-        myAnimator.SetBool("isClimbing", true);
-
-        if (moveInput.y != 0) 
-             myAnimator.speed = 0.7f;
         else myAnimator.speed = 0;
-
-        if (moveInput.x != 0 && isJumping && moveInput.y == 0) //for jumping from the ladder, and also when passing through
-        {
-            myRigidbody.gravityScale = startingGravity;
-            return;
-        }
-
-        Vector2 playerVelocity = new Vector2(myRigidbody.velocity.x, moveInput.y * runSpeed / 2);
-        myRigidbody.velocity = playerVelocity;
+        Vector2 playerClimbingVelocity = new Vector2(myRigidbody.velocity.x, moveInput.y * runSpeed / 2);
+        myRigidbody.velocity = playerClimbingVelocity;
     }
 
     void OnCollisionEnter2D(Collision2D other)
@@ -194,29 +225,24 @@ public class Player : MonoBehaviour
                 color.a = mySpriteRenderer.color.a / 2;
                 mySpriteRenderer.color = color;
                 myBodyCollider.enabled = false; //if not, my color.a goes to 0 and better not
+
             }
+
             FindObjectOfType<GameSession>().ProcessPlayerDeath();
         }
     }
 
-    void ResetJumpState() => isJumping = false;
-    
-    void ShowTheGun() => gun.SetActive(true);
-    
-    void HideTheGun() => gun.SetActive(false);
 
     //INPUT MOBILE
-    public void OnPointerX(int inputValue) => moveInput.x = inputValue;
-    
-    public void OnPointerY(int inputValue) => moveInput.y = inputValue;
-    
-    public void OnJumpUI()
+    void OnPointerX(int inputValue) => moveInput.x = inputValue;
+    void OnPointerY(int inputValue) => moveInput.y = inputValue;
+    void OnJumpUI()
     {
         if (myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground", "Climbing", "ClimbingTops")))
         {
             myRigidbody.velocity = new Vector2(0, jumpSpeed);
         }
     }
-    public void OnFireUI() =>  OnFire();
+    void OnFireUI() => OnFire();
 }
 
